@@ -23,6 +23,16 @@ export class MovimientosController {
     return this.movimientosService.findAll(usuarioId, fechaInicio, fechaFin);
   }
 
+  @Get('dashboard')
+  @UseGuards(JwtAuthGuard)
+  findMovimientosForDashboard(
+    @Query('usuarioId') usuarioId: string,
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string
+  ) {
+    return this.movimientosService.findMovimientosForDashboard(usuarioId, fechaInicio, fechaFin);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.movimientosService.findOne(+id);

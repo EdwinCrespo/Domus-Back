@@ -54,7 +54,7 @@ export class InventarioLoteService {
           productoId: createInventarioLoteDto.productoId,
           inventarioLoteId: lote.id,
           usuarioId,
-          tipo: 'ENTRADA',
+          tipo: 'entrada',
           cantidad: createInventarioLoteDto.cantidad,
           descripcion: `Registro manual de lote - Costo unitario: ${createInventarioLoteDto.costoUnitario}`,
           fecha: new Date(),
