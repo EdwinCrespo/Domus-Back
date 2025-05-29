@@ -1,0 +1,211 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Aquí puedes agregar tus modelos. Por ejemplo:
+
+// model User {
+//   id        String   @id @default(uuid())
+//   email     String   @unique
+//   name      String?
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+
+// model Profile {
+//   id     String  @id @default(uuid())
+//   bio    String?
+//   userId String  @unique
+//   user   User    @relation(fields: [userId], references: [id])
+// }
+
+model Usuario {
+  id            String    @id @default(uuid()) // UUID igual al de Supabase Auth
+  nombre        String
+  apellido      String
+  email         String    @unique
+  fechaCreacion DateTime  @default(now())
+
+  clientes      Cliente[]
+  categorias    Categoria[]
+  productos     Producto[]
+  movimientos   Movimiento[]
+  proveedores   Proveedor[]
+  compras       Compra[]
+  ventas        Venta[]
+}
+
+model Cliente {
+  id            Int       @id @default(autoincrement())
+  usuarioId     String
+  nombre        String
+  razonSocial   String
+  ruc           String
+  fechaCreacion DateTime  @default(now())
+  fechaActualizacion DateTime?
+  estado        Int
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+  ventas        Venta[]
+
+  @@unique([usuarioId, ruc])
+}
+
+model Categoria {
+  id            Int       @id @default(autoincrement())
+  usuarioId     String
+  nombre        String
+  descripcion   String?
+  fechaCreacion DateTime  @default(now())
+  fechaActualizacion DateTime?
+  estado        Int
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+  productos     Producto[]
+
+  @@unique([usuarioId, nombre])
+}
+
+model Producto {
+  id            Int       @id @default(autoincrement())
+  usuarioId     String
+  categoriaId   Int?
+  nombre        String
+  sku           String
+  codigoBarras  String?
+  fechaCreacion DateTime  @default(now())
+  fechaActualizacion DateTime?
+  estado        Int
+  margenGanancia  Float?
+  precioVenta     Float?    // Precio de venta calculado y actualizado
+
+  usuario       Usuario    @relation(fields: [usuarioId], references: [id])
+  categoria     Categoria? @relation(fields: [categoriaId], references: [id])
+  detallesVenta DetalleVenta[]
+  detallesCompra DetalleCompra[]
+  inventarios   InventarioLote[]
+  movimientos   Movimiento[]
+  @@unique([usuarioId, sku])
+}
+
+
+model InventarioLote {
+  id              Int       @id @default(autoincrement())
+  productoId      Int
+  codigoLote       String? 
+  cantidad        Int
+  costoUnitario   Float
+  fechaEntrada    DateTime
+  fechaVencimiento DateTime?
+
+  producto        Producto  @relation(fields: [productoId], references: [id])
+  movimientos     Movimiento[]  // <-- Campo para la relación inversa
+}
+
+model Movimiento {
+  id              Int           @id @default(autoincrement())
+  productoId      Int
+  inventarioLoteId Int?        // Hacemos opcional la relación con el lote
+  usuarioId       String
+  tipo            String        // entrada, salida, ajuste
+  cantidad        Int
+  fecha           DateTime      @default(now())
+  descripcion     String?
+
+  producto        Producto      @relation(fields: [productoId], references: [id])
+  inventarioLote  InventarioLote? @relation(fields: [inventarioLoteId], references: [id])
+  usuario         Usuario       @relation(fields: [usuarioId], references: [id])
+}
+
+model Proveedor {
+  id            Int       @id @default(autoincrement())
+  usuarioId     String
+  nombre        String
+  contacto      String?
+  direccion     String?
+  email         String?
+  fechaCreacion DateTime  @default(now())
+  fechaActualizacion DateTime?
+  estado        Int
+
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+  compras       Compra[]
+}
+
+model Compra {
+  id            Int       @id @default(autoincrement())
+  usuarioId     String
+  proveedorId   Int
+  fecha         DateTime  @default(now())
+  total         Float
+
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+  proveedor     Proveedor @relation(fields: [proveedorId], references: [id])
+  detalles      DetalleCompra[]
+}
+
+model DetalleCompra {
+  id            Int       @id @default(autoincrement())
+  compraId      Int
+  productoId    Int
+  cantidad      Int
+  costoUnitario Float
+
+  compra        Compra    @relation(fields: [compraId], references: [id])
+  producto      Producto  @relation(fields: [productoId], references: [id])
+}
+
+model Venta {
+  id            Int       @id @default(autoincrement())
+  usuarioId     String
+  clienteId     Int
+  fecha         DateTime  @default(now())
+  total         Float
+  estado        String    // emitida, cancelada, etc
+
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
+  cliente       Cliente   @relation(fields: [clienteId], references: [id])
+  detalles      DetalleVenta[]
+  pagos         Pago[]
+}
+
+model DetalleVenta {
+  id            Int       @id @default(autoincrement())
+  ventaId       Int
+  productoId    Int
+  cantidad      Int
+  precioUnitario Float
+  subtotal      Float
+
+  venta         Venta     @relation(fields: [ventaId], references: [id])
+  producto      Producto  @relation(fields: [productoId], references: [id])
+}
+
+model MetodoPago {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique
+  descripcion String?
+
+  pagos       Pago[]
+}
+
+model Pago {
+  id            Int       @id @default(autoincrement())
+  ventaId       Int
+  metodoPagoId  Int
+  monto         Float
+  fecha         DateTime  @default(now())
+
+  venta         Venta      @relation(fields: [ventaId], references: [id])
+  metodoPago    MetodoPago @relation(fields: [metodoPagoId], references: [id])
+}
