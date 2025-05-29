@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete ,UseGuards} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { VentaService } from './venta.service';
 import { CreateVentaDto } from './dto/create-venta.dto';
 import { UpdateVentaDto } from './dto/update-venta.dto';
@@ -24,6 +24,26 @@ export class VentaController {
   @UseGuards(JwtAuthGuard)
   findMetodoPagoAll() {
     return this.ventaService.findMetodoPagoAll();
+  }
+
+  @Get('dashboard')
+  @UseGuards(JwtAuthGuard)
+  findVentasForDashboard(
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string,
+    @Query('pagina') pagina?: string,
+    @Query('limite') limite?: string
+  ) {
+    // Validar y convertir parámetros de paginación
+    const paginaNum = pagina ? Math.max(1, parseInt(pagina)) : 1;
+    const limiteNum = limite ? Math.min(50, Math.max(1, parseInt(limite))) : 10;
+
+    return this.ventaService.findVentasForDashboard(
+      fechaInicio,
+      fechaFin,
+      paginaNum,
+      limiteNum
+    );
   }
 
   @Get(':id')
