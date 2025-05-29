@@ -64,6 +64,22 @@ export class UsuariosService {
       throw new Error(`Error al crear usuario: ${error.message}`);
     }
   }
+  async createPrueba(createUsuarioDto: CreateUsuarioWithIdDto) {
+    try {
+     
+      // Crear el usuario con el ID de Supabase
+      const usuario = await this.prisma.usuario.create({
+        data: createUsuarioDto,
+      });
+
+      return usuario;
+    } catch (error) {
+      if (error instanceof ConflictException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error(`Error al crear usuario: ${error.message}`);
+    }
+  }
 
   async findAll() {
     try {

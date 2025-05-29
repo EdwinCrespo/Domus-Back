@@ -16,6 +16,12 @@ export class UsuariosController {
     }
     return this.usuariosService.findOrCreate(createUsuarioDto);
   }
+  @Post('prueba')
+  async createPrueba(@Body() createUsuarioDto: CreateUsuarioDto) {
+    // El ID de Supabase debe venir en el DTO desde el frontend
+    return this.usuariosService.createPrueba(createUsuarioDto);
+  }
+
 
   @Get()
   @UseGuards(JwtAuthGuard)
