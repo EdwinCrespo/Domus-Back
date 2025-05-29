@@ -82,8 +82,8 @@ export class InventarioLoteService {
           ? lotesConStock.reduce((sum, lote) => sum + (lote.costoUnitario * lote.cantidad), 0) / stockTotal
           : 0;
 
-        // Calcular el nuevo precio de venta aplicando el margen de ganancia
-        const nuevoPrecioVenta = costoPromedio * (1 + (producto.margenGanancia / 100));
+        // Calcular el nuevo precio de venta aplicando el margen de ganancia y redondear a 2 decimales
+        const nuevoPrecioVenta = parseFloat((costoPromedio * (1 + (producto.margenGanancia / 100))).toFixed(2));
 
         // Actualizar el precio de venta del producto
         await prisma.producto.updateMany({

@@ -87,7 +87,7 @@ export class CompraService {
             : 0;
 
           // Calcular el nuevo precio de venta aplicando el margen de ganancia
-          const nuevoPrecioVenta = costoPromedio * (1 + (producto.margenGanancia / 100));
+          const nuevoPrecioVenta = Number((costoPromedio * (1 + (producto.margenGanancia / 100))).toFixed(2));
 
           // Actualizar el precio de venta del producto
           await prisma.producto.updateMany({

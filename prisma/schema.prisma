@@ -195,7 +195,9 @@ model MetodoPago {
   id          Int       @id @default(autoincrement())
   nombre      String    @unique
   descripcion String?
-
+  fechaCreacion DateTime  @default(now())
+  fechaActualizacion DateTime?
+  estado        Int
   pagos       Pago[]
 }
 
